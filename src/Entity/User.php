@@ -2,78 +2,100 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiFilter;
+use ApiPlatform\Metadata\ApiProperty;
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
+use App\Controller\MeController;
 use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
-use ApiPlatform\Metadata\ApiResource;
+use App\State\UserPasswordHasher;
 use Symfony\Component\Serializer\Annotation\Groups;
-use Symfony\Component\Validator\Constraints\Uuid;
+// use Symfony\Component\Validator\Constraints\Uuid;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
 #[UniqueEntity(fields: ['email'], message: 'There is already an account with this email')]
 #[ApiResource(
-    normalizationContext: ['groups' => ['read']],
-    denormalizationContext: ['groups' => ['write']],
+
+    operations: [
+        new GetCollection(),
+        new Post(processor: UserPasswordHasher::class, validationContext: ['groups' => ['Default', 'user:create']]),
+        new Get(),
+        new Put(processor: UserPasswordHasher::class),
+        new Patch(processor: UserPasswordHasher::class),
+        new Delete(),
+    ],
+    normalizationContext: ['groups' => ['user:read']],
+    denormalizationContext: ['groups' => ['user:create', 'user:update']],
 )]
 
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
+    #[Groups(['user:read'])]
     #[ORM\Id]
+    #[ORM\Column(type: 'integer')]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(length: 180)]
-    #[Groups(['read', 'write'])]
+
+    #[Groups(['user:read', 'user:create', 'user:update'])]
+    #[ORM\Column(length: 180, unique: true)]
     private ?string $email = null;
 
     /**
      * @var list<string> The user roles
      */
     #[ORM\Column]
-    #[Groups(['read', 'write'])]
+    #[Groups(['user:read', 'user:create', 'user:update'])]
     private array $roles = [];
 
-    /**
-     * @var string The hashed password
-     */
     #[ORM\Column]
-    #[Groups(['read', 'write'])]
     private ?string $password = null;
 
+    #[Groups(['user:create', 'user:update'])]
+    private ?string $plainPassword = null;
+
     #[ORM\Column(length: 255)]
-    #[Groups(['read', 'write'])]
+    #[Groups(['user:read', 'user:create', 'user:update'])]
     private ?string $lastname = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['read', 'write'])]
+    #[Groups(['user:read', 'user:create', 'user:update'])]
     private ?string $firstname = null;
 
     #[ORM\ManyToOne(inversedBy: 'players')]
-    #[Groups(['read', 'write'])]
+    #[Groups(['user:read', 'user:create', 'user:update'])]
     private ?Team $team = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['read', 'write'])]
+    #[Groups(['user:read', 'user:create', 'user:update'])]
     private ?string $relationship = null;
 
     #[ORM\Column]
-    #[Groups(['read', 'write'])]
+    #[Groups(['user:read', 'user:create', 'user:update'])]
     private ?bool $hasToChangePassword = null;
 
     #[ORM\Column]
+    #[Groups(['user:create'])]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['user:create'])]
     private ?string $apiToken = null;
 
     public function __construct(){
         $this->createdAt = new \DateTimeImmutable();
-        $this -> apiToken =new Uuid();
+        // $this -> apiToken =new Uuid();
     }
 
     public function getId(): ?int
@@ -142,13 +164,25 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    public function getPlainPassword(): ?string
+    {
+        return $this->plainPassword;
+    }
+
+    public function setPlainPassword(?string $plainPassword): self
+    {
+        $this->plainPassword = $plainPassword;
+
+        return $this;
+    }
+
     /**
      * @see UserInterface
      */
     public function eraseCredentials(): void
     {
         // If you store any temporary, sensitive data on the user, clear it here
-        // $this->plainPassword = null;
+        $this->plainPassword = null;
     }
 
     public function getLastname(): ?string
