@@ -2,8 +2,6 @@
 
 namespace App\Entity;
 
-use ApiPlatform\Metadata\ApiFilter;
-use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
@@ -31,6 +29,13 @@ use Symfony\Component\Serializer\Annotation\Groups;
         new GetCollection(),
         new Post(processor: UserPasswordHasher::class, validationContext: ['groups' => ['Default', 'user:create']]),
         new Get(),
+        new Get(
+            name: 'api_users_me',
+            uriTemplate: '/user/me',
+            controller: MeController::class,
+            normalizationContext: ['groups' => ['user:read']],
+            security: 'is_granted("IS_AUTHENTICATED_FULLY")'
+        ),
         new Put(processor: UserPasswordHasher::class),
         new Patch(processor: UserPasswordHasher::class),
         new Delete(),
@@ -93,7 +98,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['user:create'])]
     private ?string $apiToken = null;
 
-    public function __construct(){
+    public function __construct()
+    {
         $this->createdAt = new \DateTimeImmutable();
         // $this -> apiToken =new Uuid();
     }
