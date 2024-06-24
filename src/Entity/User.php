@@ -29,13 +29,6 @@ use Symfony\Component\Serializer\Annotation\Groups;
         new GetCollection(),
         new Post(processor: UserPasswordHasher::class, validationContext: ['groups' => ['Default', 'user:create']]),
         new Get(),
-        new Get(
-            name: 'api_users_me',
-            uriTemplate: '/user/me',
-            controller: MeController::class,
-            normalizationContext: ['groups' => ['user:read']],
-            security: 'is_granted("IS_AUTHENTICATED_FULLY")'
-        ),
         new Put(processor: UserPasswordHasher::class),
         new Patch(processor: UserPasswordHasher::class),
         new Delete(),
