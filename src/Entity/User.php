@@ -11,6 +11,8 @@ use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use App\Controller\MeController;
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -88,13 +90,20 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['user:create'])]
-    private ?string $apiToken = null;
+    #[Groups(['user:read', 'user:create', 'user:update'])]
+    private ?string $LicenceNumber = null;
+
+    /**
+     * @var Collection<int, UserType>
+     */
+    #[ORM\ManyToMany(targetEntity: UserType::class, inversedBy: 'users')]
+    #[Groups(['user:read', 'user:create', 'user:update'])]
+    private Collection $userType;
 
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
-        // $this -> apiToken =new Uuid();
+        $this->userType = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -249,14 +258,39 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->createdAt;
     }
 
-    public function getApiToken(): ?string
+
+    public function getLicenceNumber(): ?string
     {
-        return $this->apiToken;
+        return $this->LicenceNumber;
     }
 
-    public function setApiToken(?string $apiToken): static
+    public function setLicenceNumber(?string $LicenceNumber): static
     {
-        $this->apiToken = $apiToken;
+        $this->LicenceNumber = $LicenceNumber;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, UserType>
+     */
+    public function getUserType(): Collection
+    {
+        return $this->userType;
+    }
+
+    public function addUserType(UserType $userType): static
+    {
+        if (!$this->userType->contains($userType)) {
+            $this->userType->add($userType);
+        }
+
+        return $this;
+    }
+
+    public function removeUserType(UserType $userType): static
+    {
+        $this->userType->removeElement($userType);
 
         return $this;
     }

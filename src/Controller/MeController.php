@@ -40,6 +40,7 @@ class MeController extends AbstractController
             'firstname' => $user->getFirstname(),
             'roles' => $user->getRoles(),
             'team' => $user->getTeam(),
+            'licence' => $user->getLicenceNumber(),
             'relationship' => $user->getRelationship(),
             'hasToChangePassword' => $user->hasToChangePassword(),
         ];

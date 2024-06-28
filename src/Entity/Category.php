@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\ApiProperty;
 
 #[ORM\Entity(repositoryClass: CategoryRepository::class)]
 #[ApiResource]
@@ -27,6 +28,7 @@ class Category
      * @var Collection<int, Team>
      */
     #[ORM\OneToMany(targetEntity: Team::class, mappedBy: 'category')]
+    #[ApiProperty(readable: true, writable: false)]
     private Collection $teams;
 
     public function __construct()
