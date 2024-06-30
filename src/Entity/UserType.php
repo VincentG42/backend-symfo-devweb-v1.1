@@ -2,25 +2,37 @@
 
 namespace App\Entity;
 
+
+use ApiPlatform\Metadata\ApiResource;
 use App\Repository\UserTypeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: UserTypeRepository::class)]
+#[ApiResource(
+    normalizationContext: ["groups" => ["userType:read"]],
+    denormalizationContext: ["groups" => ["userType:create", "userType:update"]]
+)]
+#[ORM\Table(name: "user_type")]
 class UserType
 {
-    #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column]
+    #[ORM\Id()]
+    #[ORM\GeneratedValue()]
+    #[ORM\Column(type: "integer")]
+    #[Groups("userType:read", "user:read")]
     private ?int $id = null;
 
-    #[ORM\Column(length: 255)]
+
+    #[ORM\Column(type: "string", length: 255)]
+    #[Groups("userType:read", "userType:create", "userType:update", "user:read")]
     private ?string $Name = null;
 
     /**
      * @var Collection<int, User>
      */
+    #[Groups("userType:read")]
     #[ORM\ManyToMany(targetEntity: User::class, mappedBy: 'userType')]
     private Collection $users;
 

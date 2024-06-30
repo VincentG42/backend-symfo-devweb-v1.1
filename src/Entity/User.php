@@ -96,8 +96,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @var Collection<int, UserType>
      */
-    #[ORM\ManyToMany(targetEntity: UserType::class, inversedBy: 'users')]
-    #[Groups(['user:read', 'user:create', 'user:update'])]
+    #[ORM\ManyToMany(targetEntity: UserType::class, inversedBy: "users")]
+    #[ORM\JoinTable(name: "user_user_type")]
+    #[Groups("user:read", "user:create", "user:update")]
     private Collection $userType;
 
     public function __construct()
