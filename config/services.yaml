@@ -26,3 +26,8 @@ services:
     App\State\UserPasswordHasher:
         bind:
             $processor: '@api_platform.doctrine.orm.state.persist_processor'
+
+    # Rate Limit Listener
+    App\EventListener\RateLimitListener:
+        tags:
+            - { name: kernel.event_listener, event: kernel.request, priority: 100 }
