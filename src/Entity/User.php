@@ -86,25 +86,21 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?bool $hasToChangePassword = null;
 
     #[ORM\Column]
-    #[Groups(['user:create'])]
+    #[Groups(['user:read'])]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     #[Groups(['user:read', 'user:create', 'user:update'])]
     private ?string $LicenceNumber = null;
 
-    /**
-     * @var Collection<int, UserType>
-     */
-    #[ORM\ManyToMany(targetEntity: UserType::class, inversedBy: "users")]
-    #[ORM\JoinTable(name: "user_user_type")]
-    #[Groups("user:read", "user:create", "user:update")]
-    private Collection $userType;
+    #[ORM\ManyToOne(inversedBy: 'users')]
+    #[Groups(['user:read', 'user:create', 'user:update'])]
+    private ?UserType $userType = null;
 
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
-        $this->userType = new ArrayCollection();
+        $this->hasToChangePassword = true ;
     }
 
     public function getId(): ?int
@@ -272,27 +268,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    /**
-     * @return Collection<int, UserType>
-     */
-    public function getUserType(): Collection
+    public function getUserType(): ?UserType
     {
         return $this->userType;
     }
 
-    public function addUserType(UserType $userType): static
+    public function setUserType(?UserType $userType): static
     {
-        if (!$this->userType->contains($userType)) {
-            $this->userType->add($userType);
-        }
+        $this->userType = $userType;
 
         return $this;
     }
 
-    public function removeUserType(UserType $userType): static
-    {
-        $this->userType->removeElement($userType);
-
-        return $this;
-    }
 }

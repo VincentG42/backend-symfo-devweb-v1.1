@@ -2,38 +2,29 @@
 
 namespace App\Entity;
 
-
 use ApiPlatform\Metadata\ApiResource;
 use App\Repository\UserTypeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Serializer\Annotation\Groups;
+
 
 #[ORM\Entity(repositoryClass: UserTypeRepository::class)]
-#[ApiResource(
-    normalizationContext: ["groups" => ["userType:read"]],
-    denormalizationContext: ["groups" => ["userType:create", "userType:update"]]
-)]
-#[ORM\Table(name: "user_type")]
+#[ApiResource]
 class UserType
 {
-    #[ORM\Id()]
-    #[ORM\GeneratedValue()]
-    #[ORM\Column(type: "integer")]
-    #[Groups("userType:read", "user:read")]
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
     private ?int $id = null;
 
-
-    #[ORM\Column(type: "string", length: 255)]
-    #[Groups("userType:read", "userType:create", "userType:update", "user:read")]
-    private ?string $Name = null;
+    #[ORM\Column(length: 255)]
+    private ?string $name = null;
 
     /**
      * @var Collection<int, User>
      */
-    #[Groups("userType:read")]
-    #[ORM\ManyToMany(targetEntity: User::class, mappedBy: 'userType')]
+    #[ORM\OneToMany(targetEntity: User::class, mappedBy: 'userType')]
     private Collection $users;
 
     public function __construct()
@@ -48,12 +39,12 @@ class UserType
 
     public function getName(): ?string
     {
-        return $this->Name;
+        return $this->name;
     }
 
-    public function setName(string $Name): static
+    public function setName(string $name): static
     {
-        $this->Name = $Name;
+        $this->name = $name;
 
         return $this;
     }
@@ -70,7 +61,7 @@ class UserType
     {
         if (!$this->users->contains($user)) {
             $this->users->add($user);
-            $user->addUserType($this);
+            $user->setUserType($this);
         }
 
         return $this;
@@ -79,7 +70,10 @@ class UserType
     public function removeUser(User $user): static
     {
         if ($this->users->removeElement($user)) {
-            $user->removeUserType($this);
+            // set the owning side to null (unless already changed)
+            if ($user->getUserType() === $this) {
+                $user->setUserType(null);
+            }
         }
 
         return $this;
