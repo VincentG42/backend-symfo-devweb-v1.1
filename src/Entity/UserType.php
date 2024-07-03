@@ -27,6 +27,7 @@ class UserType
     #[ORM\OneToMany(targetEntity: User::class, mappedBy: 'userType')]
     private Collection $users;
 
+
     public function __construct()
     {
         $this->users = new ArrayCollection();
@@ -78,4 +79,5 @@ class UserType
 
         return $this;
     }
+
 }
