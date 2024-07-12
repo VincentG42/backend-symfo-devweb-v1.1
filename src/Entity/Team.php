@@ -7,36 +7,46 @@ use App\Repository\TeamRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: TeamRepository::class)]
 #[ApiResource(
-    normalizationContext: ['groups' => ['read']],
-    denormalizationContext: ['groups' => ['write']],
+    normalizationContext: ['groups' => ['team:read']],
+    denormalizationContext: ['groups' => ['team:write']],
 )]
 class Team
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['team:read'])]
     private ?int $id = null;
+
+    #[ORM\Column(length: 255)]
+    #[Groups(['team:read', 'team:write'])]
+    private ?string $name = null;
 
     #[ORM\ManyToOne(inversedBy: 'teams')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['team:read', 'team:write'])]
     private ?Category $category = null;
 
     #[ORM\ManyToOne]
+    #[Groups(['team:read', 'team:write'])]
     private ?User $coach = null;
 
     /**
      * @var Collection<int, Encounter>
      */
     #[ORM\OneToMany(targetEntity: Encounter::class, mappedBy: 'team')]
+    #[Groups(['team:read'])]
     private Collection $encounters;
 
     /**
      * @var Collection<int, User>
      */
     #[ORM\OneToMany(targetEntity: User::class, mappedBy: 'team')]
+    #[Groups(['team:read'])]
     private Collection $players;
 
     public function __construct()
@@ -48,6 +58,18 @@ class Team
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getName(): ?string
+    {
+        return $this->name;
+    }
+
+    public function setName(string $name): static
+    {
+        $this->name = $name;
+
+        return $this;
     }
 
     public function getCategory(): ?Category

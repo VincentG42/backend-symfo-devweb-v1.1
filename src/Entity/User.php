@@ -37,7 +37,7 @@ use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
     denormalizationContext: ['groups' => ['user:create', 'user:update']],
 )]
 
-#[ApiFilter(SearchFilter::class, properties: ['userType' => 'exact'])]
+#[ApiFilter(SearchFilter::class, properties: ['userType' => 'exact', 'team' => 'exact'])]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[Groups(['user:read'])]
@@ -93,6 +93,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $LicenceNumber = null;
 
     #[ORM\ManyToOne(inversedBy: 'users')]
+    #[Groups(['user:read', 'user:create', 'user:update'])]
     private ?UserType $userType = null;
 
     
