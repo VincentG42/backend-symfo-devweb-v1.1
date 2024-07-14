@@ -18,6 +18,7 @@ use App\State\UserPasswordHasher;
 use Symfony\Component\Serializer\Annotation\Groups;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use Symfony\Component\Serializer\Annotation\MaxDepth;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
@@ -26,9 +27,9 @@ use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 #[ApiResource(
 
     operations: [
-        new GetCollection(),
+        new GetCollection(normalizationContext: ['groups' => ['user:list']]),
         new Post(processor: UserPasswordHasher::class, validationContext: ['groups' => ['Default', 'user:create']]),
-        new Get(),
+        new Get(normalizationContext: ['groups' => ['user:read']]),
         new Put(processor: UserPasswordHasher::class),
         new Patch(processor: UserPasswordHasher::class),
         new Delete(),
@@ -37,17 +38,17 @@ use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
     denormalizationContext: ['groups' => ['user:create', 'user:update']],
 )]
 
-#[ApiFilter(SearchFilter::class, properties: ['userType' => 'exact', 'team' => 'exact'])]
+#[ApiFilter(SearchFilter::class, properties: ['userType' => 'exact', 'team' => 'exact', 'lastname' => 'partial', 'firstname' => 'partial'])]    
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
-    #[Groups(['user:read'])]
+    #[Groups(['user:read','user:list'])]
     #[ORM\Id]
     #[ORM\Column(type: 'integer')]
     #[ORM\GeneratedValue]
     private ?int $id = null;
 
 
-    #[Groups(['user:read', 'user:create', 'user:update'])]
+    #[Groups(['user:read', 'user:create', 'user:update', 'user:list'])]
     #[ORM\Column(length: 180, unique: true)]
     private ?string $email = null;
 
@@ -65,20 +66,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $plainPassword = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['user:read', 'user:create', 'user:update'])]
+    #[Groups(['user:read', 'user:create', 'user:update', 'user:list'])]
     private ?string $lastname = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['user:read', 'user:create', 'user:update'])]
+    #[Groups(['user:read', 'user:create', 'user:update', 'user:list'])]
     private ?string $firstname = null;
 
     #[ORM\ManyToOne(inversedBy: 'players')]
     #[Groups(['user:read', 'user:create', 'user:update'])]
+    #[MaxDepth(1)]
     private ?Team $team = null;
-
-    #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['user:read', 'user:create', 'user:update'])]
-    private ?string $relationship = null;
 
     #[ORM\Column]
     #[Groups(['user:read', 'user:create', 'user:update'])]
@@ -89,7 +87,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['user:read', 'user:create', 'user:update'])]
+    #[Groups(['user:read', 'user:create', 'user:update','user:list'])]
     private ?string $LicenceNumber = null;
 
     #[ORM\ManyToOne(inversedBy: 'users')]
@@ -224,18 +222,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setTeam(?Team $team): static
     {
         $this->team = $team;
-
-        return $this;
-    }
-
-    public function getRelationship(): ?string
-    {
-        return $this->relationship;
-    }
-
-    public function setRelationship(?string $relationship): static
-    {
-        $this->relationship = $relationship;
 
         return $this;
     }

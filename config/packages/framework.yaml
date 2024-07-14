@@ -1,4 +1,3 @@
-# see https://symfony.com/doc/current/reference/configuration/framework.html
 framework:
     secret: '%env(APP_SECRET)%'
     #csrf_protection: true
@@ -9,9 +8,14 @@ framework:
     #esi: true
     #fragments: true
 
+    serializer:
+        max_depth_handler: ~
+
 when@test:
     framework:
         test: true
         session:
             storage_factory_id: session.storage.factory.mock_file
-        serializer: { enable_annotations: true }
+        serializer:
+            enable_annotations: true
+            max_depth_handler: ~

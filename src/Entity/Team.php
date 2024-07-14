@@ -19,11 +19,11 @@ class Team
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['team:read'])]
+    #[Groups(['team:read', 'user:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['team:read', 'team:write'])]
+    #[Groups(['team:read', 'team:write', 'user:read'])]
     private ?string $name = null;
 
     #[ORM\ManyToOne(inversedBy: 'teams')]
