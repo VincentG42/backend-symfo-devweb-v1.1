@@ -1,41 +1,45 @@
 <?php
-// api/src/State/UserPasswordHasher.php
 
 namespace App\State;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
-use App\Entity\User;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use App\Entity\User;
+use App\Service\EmailService;
+use App\Service\PasswordGenerator;
 
-/**
- * @implements ProcessorInterface<User, User|void>
- */
-final readonly class UserPasswordHasher implements ProcessorInterface
+final class UserPasswordHasher implements ProcessorInterface
 {
     public function __construct(
-        private ProcessorInterface $processor,
-        private UserPasswordHasherInterface $passwordHasher
-    )
-    {
-    }
+        private readonly ProcessorInterface $processor,
+        private readonly UserPasswordHasherInterface $passwordHasher,
+        private readonly EmailService $emailService,
+        private readonly PasswordGenerator $passwordGenerator
+    ) {}
 
-    /**
-     * @param User $data
-     */
-    public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): ?User
+    public function process($data, Operation $operation, array $uriVariables = [], array $context = [])
     {
-        if (!$data->getPlainPassword()) {
+        if (!$data instanceof User) {
             return $this->processor->process($data, $operation, $uriVariables, $context);
         }
 
-        $hashedPassword = $this->passwordHasher->hashPassword(
-            $data,
-            $data->getPlainPassword()
-        );
-        $data->setPassword($hashedPassword);
-        $data->eraseCredentials();
+        if ($data->getId() === null) {
+            // C'est une création d'utilisateur
+            $temporaryPassword = $this->passwordGenerator->generatePassword();
+            $hashedPassword = $this->passwordHasher->hashPassword($data, $temporaryPassword);
+            $data->setPassword($hashedPassword);
 
-        return $this->processor->process($data, $operation, $uriVariables, $context);
+            // On envoie l'email avec le mot de passe temporaire
+            $this->emailService->sendWelcomeEmail($data->getEmail(), $temporaryPassword);
+        } elseif ($data->getPassword() !== null) {
+            // C'est une mise à jour du mot de passe
+            $hashedPassword = $this->passwordHasher->hashPassword($data, $data->getPassword());
+            $data->setPassword($hashedPassword);
+        }
+
+        $result = $this->processor->process($data, $operation, $uriVariables, $context);
+
+        return $result;
     }
 }

@@ -49,6 +49,10 @@ class Team
     #[Groups(['team:read'])]
     private Collection $players;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['team:read', 'team:write'])]
+    private ?string $Gender = null;
+
     public function __construct()
     {
         $this->encounters = new ArrayCollection();
@@ -152,6 +156,18 @@ class Team
                 $player->setTeam(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getGender(): ?string
+    {
+        return $this->Gender;
+    }
+
+    public function setGender(?string $Gender): static
+    {
+        $this->Gender = $Gender;
 
         return $this;
     }

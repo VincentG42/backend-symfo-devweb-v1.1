@@ -25,7 +25,6 @@ use Symfony\Component\Serializer\Annotation\MaxDepth;
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
 #[UniqueEntity(fields: ['email'], message: 'There is already an account with this email')]
 #[ApiResource(
-
     operations: [
         new GetCollection(normalizationContext: ['groups' => ['user:list']]),
         new Post(processor: UserPasswordHasher::class, validationContext: ['groups' => ['Default', 'user:create']]),
@@ -37,24 +36,19 @@ use Symfony\Component\Serializer\Annotation\MaxDepth;
     normalizationContext: ['groups' => ['user:read']],
     denormalizationContext: ['groups' => ['user:create', 'user:update']],
 )]
-
-#[ApiFilter(SearchFilter::class, properties: ['userType' => 'exact', 'team' => 'exact', 'lastname' => 'partial', 'firstname' => 'partial'])]    
+#[ApiFilter(SearchFilter::class, properties: ['userType' => 'exact', 'team' => 'exact', 'lastname' => 'partial', 'firstname' => 'partial'])]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
-    #[Groups(['user:read','user:list'])]
+    #[Groups(['user:read', 'user:list'])]
     #[ORM\Id]
     #[ORM\Column(type: 'integer')]
     #[ORM\GeneratedValue]
     private ?int $id = null;
 
-
     #[Groups(['user:read', 'user:create', 'user:update', 'user:list'])]
     #[ORM\Column(length: 180, unique: true)]
     private ?string $email = null;
 
-    /**
-     * @var list<string> The user roles
-     */
     #[ORM\Column]
     #[Groups(['user:read', 'user:create', 'user:update'])]
     private array $roles = [];
@@ -62,8 +56,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?string $password = null;
 
-    #[Groups(['user:create', 'user:update'])]
-    private ?string $plainPassword = null;
+    private ?string $temporaryPassword = null;
 
     #[ORM\Column(length: 255)]
     #[Groups(['user:read', 'user:create', 'user:update', 'user:list'])]
@@ -87,20 +80,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['user:read', 'user:create', 'user:update','user:list'])]
+    #[Groups(['user:read', 'user:create', 'user:update', 'user:list'])]
     private ?string $LicenceNumber = null;
 
     #[ORM\ManyToOne(inversedBy: 'users')]
     #[Groups(['user:read', 'user:create', 'user:update'])]
     private ?UserType $userType = null;
 
-    
-
-
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
-        $this->hasToChangePassword = true ;
+        $this->hasToChangePassword = true;
     }
 
     public function getId(): ?int
@@ -116,47 +106,27 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setEmail(string $email): static
     {
         $this->email = $email;
-
         return $this;
     }
 
-    /**
-     * A visual identifier that represents this user.
-     *
-     * @see UserInterface
-     */
     public function getUserIdentifier(): string
     {
         return (string) $this->email;
     }
 
-    /**
-     * @see UserInterface
-     *
-     * @return list<string>
-     */
     public function getRoles(): array
     {
         $roles = $this->roles;
-        // guarantee every user at least has ROLE_USER
         $roles[] = 'ROLE_USER';
-
         return array_unique($roles);
     }
 
-    /**
-     * @param list<string> $roles
-     */
     public function setRoles(array $roles): static
     {
         $this->roles = $roles;
-
         return $this;
     }
 
-    /**
-     * @see PasswordAuthenticatedUserInterface
-     */
     public function getPassword(): string
     {
         return $this->password;
@@ -165,29 +135,23 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setPassword(string $password): static
     {
         $this->password = $password;
-
         return $this;
     }
 
-    public function getPlainPassword(): ?string
+    public function getTemporaryPassword(): ?string
     {
-        return $this->plainPassword;
+        return $this->temporaryPassword;
     }
 
-    public function setPlainPassword(?string $plainPassword): self
+    public function setTemporaryPassword(?string $temporaryPassword): self
     {
-        $this->plainPassword = $plainPassword;
-
+        $this->temporaryPassword = $temporaryPassword;
         return $this;
     }
 
-    /**
-     * @see UserInterface
-     */
     public function eraseCredentials(): void
     {
-        // If you store any temporary, sensitive data on the user, clear it here
-        $this->plainPassword = null;
+        $this->temporaryPassword = null;
     }
 
     public function getLastname(): ?string
@@ -198,7 +162,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setLastname(string $lastname): static
     {
         $this->lastname = $lastname;
-
         return $this;
     }
 
@@ -210,7 +173,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setFirstname(string $firstname): static
     {
         $this->firstname = $firstname;
-
         return $this;
     }
 
@@ -222,7 +184,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setTeam(?Team $team): static
     {
         $this->team = $team;
-
         return $this;
     }
 
@@ -234,7 +195,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setHasToChangePassword(bool $hasToChangePassword): static
     {
         $this->hasToChangePassword = $hasToChangePassword;
-
         return $this;
     }
 
@@ -242,7 +202,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         return $this->createdAt;
     }
-
 
     public function getLicenceNumber(): ?string
     {
@@ -252,7 +211,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setLicenceNumber(?string $LicenceNumber): static
     {
         $this->LicenceNumber = $LicenceNumber;
-
         return $this;
     }
 
@@ -264,9 +222,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setUserType(?UserType $userType): static
     {
         $this->userType = $userType;
-
         return $this;
     }
-
-
 }

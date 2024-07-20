@@ -5,9 +5,15 @@ namespace App\Entity;
 use ApiPlatform\Metadata\ApiResource;
 use App\Repository\EncounterRepository;
 use Doctrine\ORM\Mapping as ORM;
+use ApiPlatform\Metadata\ApiFilter;
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use App\Filter\NextWeekendFilter;
+
 
 #[ORM\Entity(repositoryClass: EncounterRepository::class)]
 #[ApiResource]
+#[ApiFilter(SearchFilter::class, properties: [ 'team' => 'exact'])]   
+#[ApiFilter(NextWeekendFilter::class)]
 class Encounter
 {
     #[ORM\Id]

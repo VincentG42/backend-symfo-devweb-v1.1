@@ -31,3 +31,7 @@ services:
     App\EventListener\RateLimitListener:
         tags:
             - { name: kernel.event_listener, event: kernel.request, priority: 100 }
+            
+    App\Service\EmailService:
+        arguments:
+            $mailer: '@mailer.mailer'
