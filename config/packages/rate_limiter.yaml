@@ -2,5 +2,5 @@ framework:
     rate_limiter:
         api:
             policy: 'fixed_window'
-            limit: 200
+            limit: 100
             interval: '1 minute'

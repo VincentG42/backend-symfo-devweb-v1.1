@@ -15,12 +15,12 @@ class NextWeekendFilter extends AbstractFilter
             return;
         }
 
-        $parameterName = $queryNameGenerator->generateParameterName($property);
+        $queryNameGenerator->generateParameterName($property);
 
         $queryBuilder
             ->andWhere('o.happensAt >= :weekendStart')
             ->andWhere('o.happensAt <= :weekendEnd')
-            ->setParameter('weekendStart', new \DateTime('next saturday'))
+            ->setParameter('weekendStart', new \DateTime('next saturday 00:00:00'))
             ->setParameter('weekendEnd', new \DateTime('next sunday 23:59:59'));
     }
 
