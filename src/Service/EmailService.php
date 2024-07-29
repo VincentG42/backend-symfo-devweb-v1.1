@@ -14,21 +14,21 @@ class EmailService
         $this->mailer = $mailer;
     }
 
-    public function sendWelcomeEmail(string $to, string $tempPassword)
+    public function sendWelcomeEmail(string $mail, string $tempPassword)
     {
         $email = (new Email())
             ->from('your@email.com')
-            ->to($to)
+            ->to($mail)
             ->subject('Bienvenue ! Voici vos identifiants')
             ->text(<<<EOT
             Bienvenue  sur l'application du CCSLR!
             
             Voici vos identifiants de connexion :
             
-            Identifiant : {$to}
+            Identifiant : {$mail}
             Mot de passe temporaire : {$tempPassword}
             
-            Veuillez vous connecter à l'adresse suivante : https://votreapplication.com/login
+            Veuillez vous connecter à l'adresse suivante : http://localhost:3000/login
             
             Nous vous recommandons de changer votre mot de passe lors de votre première connexion.
             
